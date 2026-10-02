@@ -1,0 +1,450 @@
+<script>
+
+let servicos = [];
+
+let itens = [];
+
+
+// ========================================
+// INICIALIZAÇÃO
+// ========================================
+
+document.addEventListener(
+  'DOMContentLoaded',
+  carregarServicos
+);
+
+
+// ========================================
+// CARREGAR SERVIÇOS
+// ========================================
+
+function carregarServicos() {
+
+  google.script.run
+    .withSuccessHandler(function(lista) {
+
+      servicos = lista;
+
+      const select =
+        document.getElementById('servico');
+
+      lista.forEach(function(servico) {
+
+        const option =
+          document.createElement('option');
+
+        option.value = servico.id;
+
+        option.textContent =
+          servico.nome +
+          ' - R$ ' +
+          formatarMoeda(servico.preco);
+
+        select.appendChild(option);
+
+      });
+
+    })
+    .withFailureHandler(mostrarErro)
+    .listarServicos();
+
+}
+
+
+// ========================================
+// QUANDO SELECIONAR SERVIÇO
+// ========================================
+
+document
+  .getElementById('servico')
+  .addEventListener('change', function() {
+
+    const id = this.value;
+
+    const servico =
+      servicos.find(s => s.id === id);
+
+    if (servico) {
+
+      document
+        .getElementById('valor')
+        .value = servico.preco;
+
+    }
+
+  });
+
+
+// ========================================
+// ADICIONAR ITEM
+// ========================================
+
+function adicionarItem() {
+
+  const select =
+    document.getElementById('servico');
+
+  const id = select.value;
+
+  const quantidade =
+    Number(
+      document.getElementById('quantidade').value
+    );
+
+  const valor =
+    Number(
+      document.getElementById('valor').value
+    );
+
+  if (!id) {
+
+    mostrarErro(
+      'Selecione um serviço.'
+    );
+
+    return;
+
+  }
+
+  if (quantidade <= 0 || valor < 0) {
+
+    mostrarErro(
+      'Quantidade ou valor inválido.'
+    );
+
+    return;
+
+  }
+
+  const servico =
+    servicos.find(s => s.id === id);
+
+  itens.push({
+
+    descricao: servico.nome,
+
+    quantidade: quantidade,
+
+    valor: valor,
+
+    total: quantidade * valor
+
+  });
+
+  atualizarTabela();
+
+}
+
+
+// ========================================
+// ATUALIZAR TABELA
+// ========================================
+
+function atualizarTabela() {
+
+  const tbody =
+    document.getElementById('listaItens');
+
+  tbody.innerHTML = '';
+
+  itens.forEach(function(item, index) {
+
+    const tr =
+      document.createElement('tr');
+
+    tr.innerHTML = `
+
+      <td>
+        ${item.descricao}
+      </td>
+
+      <td>
+        ${item.quantidade}
+      </td>
+
+      <td>
+        R$ ${formatarMoeda(item.valor)}
+      </td>
+
+      <td>
+        R$ ${formatarMoeda(item.total)}
+      </td>
+
+      <td>
+
+        <button
+          class="btn-remover"
+          onclick="removerItem(${index})">
+
+          X
+
+        </button>
+
+      </td>
+
+    `;
+
+    tbody.appendChild(tr);
+
+  });
+
+  calcularTotal();
+
+}
+
+
+// ========================================
+// REMOVER ITEM
+// ========================================
+
+function removerItem(index) {
+
+  itens.splice(index, 1);
+
+  atualizarTabela();
+
+}
+
+
+// ========================================
+// CALCULAR TOTAL
+// ========================================
+
+function calcularTotal() {
+
+  let subtotal = 0;
+
+  itens.forEach(function(item) {
+
+    subtotal += item.total;
+
+  });
+
+  const desconto =
+    Number(
+      document.getElementById('desconto').value
+    ) || 0;
+
+  const total =
+    Math.max(0, subtotal - desconto);
+
+  document
+    .getElementById('subtotal')
+    .textContent =
+    'R$ ' + formatarMoeda(subtotal);
+
+  document
+    .getElementById('valorDesconto')
+    .textContent =
+    'R$ ' + formatarMoeda(desconto);
+
+  document
+    .getElementById('total')
+    .textContent =
+    'R$ ' + formatarMoeda(total);
+
+}
+
+
+// ========================================
+// GERAR ORÇAMENTO
+// ========================================
+
+function gerarOrcamento() {
+
+  const cliente = {
+
+    nome:
+      document
+        .getElementById('clienteNome')
+        .value
+        .trim(),
+
+    telefone:
+      document
+        .getElementById('clienteTelefone')
+        .value
+        .trim(),
+
+    email:
+      document
+        .getElementById('clienteEmail')
+        .value
+        .trim(),
+
+    endereco:
+      document
+        .getElementById('clienteEndereco')
+        .value
+        .trim()
+
+  };
+
+
+  if (!cliente.nome) {
+
+    mostrarErro(
+      'Informe o nome do cliente.'
+    );
+
+    return;
+
+  }
+
+
+  if (itens.length === 0) {
+
+    mostrarErro(
+      'Adicione pelo menos um item.'
+    );
+
+    return;
+
+  }
+
+
+  const desconto =
+    Number(
+      document.getElementById('desconto').value
+    ) || 0;
+
+
+  const dados = {
+
+    cliente: cliente,
+
+    itens: itens,
+
+    desconto: desconto
+
+  };
+
+
+  const botao =
+    document.querySelector('.btn-gerar');
+
+  botao.disabled = true;
+
+  botao.textContent =
+    'SALVANDO...';
+
+
+  google.script.run
+
+    .withSuccessHandler(function(resultado) {
+
+      mostrarSucesso(
+        'Orçamento ' +
+        resultado.numero +
+        ' criado com sucesso!'
+      );
+
+      botao.disabled = false;
+
+      botao.textContent =
+        'GERAR ORÇAMENTO';
+
+      limparFormulario();
+
+    })
+
+    .withFailureHandler(function(erro) {
+
+      mostrarErro(
+        erro.message || erro
+      );
+
+      botao.disabled = false;
+
+      botao.textContent =
+        'GERAR ORÇAMENTO';
+
+    })
+
+    .salvarOrcamento(dados);
+
+}
+
+
+// ========================================
+// LIMPAR FORMULÁRIO
+// ========================================
+
+function limparFormulario() {
+
+  document
+    .getElementById('clienteNome')
+    .value = '';
+
+  document
+    .getElementById('clienteTelefone')
+    .value = '';
+
+  document
+    .getElementById('clienteEmail')
+    .value = '';
+
+  document
+    .getElementById('clienteEndereco')
+    .value = '';
+
+  document
+    .getElementById('desconto')
+    .value = 0;
+
+  itens = [];
+
+  atualizarTabela();
+
+}
+
+
+// ========================================
+// MOEDA
+// ========================================
+
+function formatarMoeda(valor) {
+
+  return Number(valor).toLocaleString(
+    'pt-BR',
+    {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }
+  );
+
+}
+
+
+// ========================================
+// MENSAGENS
+// ========================================
+
+function mostrarSucesso(texto) {
+
+  const elemento =
+    document.getElementById('mensagem');
+
+  elemento.textContent = texto;
+
+  elemento.className = 'sucesso';
+
+}
+
+
+function mostrarErro(erro) {
+
+  const elemento =
+    document.getElementById('mensagem');
+
+  elemento.textContent =
+    typeof erro === 'string'
+      ? erro
+      : erro.message || 'Erro inesperado.';
+
+  elemento.className = 'erro';
+
+}
+
+</script>

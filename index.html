@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+  <base target="_top">
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Orçamento Inteligente</title>
+
+  <?!= include('style'); ?>
+
+</head>
+
+<body>
+
+<div class="app">
+
+  <header>
+
+    <div>
+      <h1>Orçamento Inteligente</h1>
+      <p>Crie orçamentos de forma rápida</p>
+    </div>
+
+    <div class="logo">
+      OI
+    </div>
+
+  </header>
+
+
+  <main>
+
+    <!-- CLIENTE -->
+
+    <section class="card">
+
+      <h2>Cliente</h2>
+
+      <div class="grid">
+
+        <div class="campo">
+
+          <label>Nome</label>
+
+          <input
+            type="text"
+            id="clienteNome"
+            placeholder="Nome do cliente">
+
+        </div>
+
+
+        <div class="campo">
+
+          <label>WhatsApp</label>
+
+          <input
+            type="text"
+            id="clienteTelefone"
+            placeholder="(00) 00000-0000">
+
+        </div>
+
+
+        <div class="campo">
+
+          <label>E-mail</label>
+
+          <input
+            type="email"
+            id="clienteEmail"
+            placeholder="cliente@email.com">
+
+        </div>
+
+
+        <div class="campo">
+
+          <label>Endereço</label>
+
+          <input
+            type="text"
+            id="clienteEndereco"
+            placeholder="Endereço">
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- SERVIÇO -->
+
+    <section class="card">
+
+      <h2>Adicionar serviço</h2>
+
+      <div class="grid-servico">
+
+        <div class="campo">
+
+          <label>Serviço</label>
+
+          <select id="servico">
+
+            <option value="">
+              Selecione um serviço
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="campo">
+
+          <label>Quantidade</label>
+
+          <input
+            type="number"
+            id="quantidade"
+            value="1"
+            min="1">
+
+        </div>
+
+
+        <div class="campo">
+
+          <label>Valor unitário</label>
+
+          <input
+            type="number"
+            id="valor"
+            step="0.01"
+            min="0">
+
+        </div>
+
+
+        <button
+          class="btn"
+          onclick="adicionarItem()">
+
+          + Adicionar
+
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- ITENS -->
+
+    <section class="card">
+
+      <h2>Itens do orçamento</h2>
+
+      <div class="table-container">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>Descrição</th>
+              <th>Qtd.</th>
+              <th>Valor</th>
+              <th>Total</th>
+              <th></th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="listaItens">
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+    <!-- TOTAL -->
+
+    <section class="card resumo">
+
+      <div>
+
+        <label>Desconto</label>
+
+        <input
+          type="number"
+          id="desconto"
+          value="0"
+          min="0"
+          step="0.01"
+          oninput="calcularTotal()">
+
+      </div>
+
+
+      <div class="totais">
+
+        <p>
+          Subtotal:
+          <strong id="subtotal">
+            R$ 0,00
+          </strong>
+        </p>
+
+        <p>
+          Desconto:
+          <strong id="valorDesconto">
+            R$ 0,00
+          </strong>
+        </p>
+
+        <p class="total-final">
+
+          Total:
+          <strong id="total">
+            R$ 0,00
+          </strong>
+
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- BOTÃO -->
+
+    <button
+      class="btn-gerar"
+      onclick="gerarOrcamento()">
+
+      GERAR ORÇAMENTO
+
+    </button>
+
+
+    <div id="mensagem"></div>
+
+  </main>
+
+</div>
+
+
+<?!= include('script'); ?>
+
+</body>
+
+</html>
